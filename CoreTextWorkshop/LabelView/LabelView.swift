@@ -8,6 +8,8 @@ final public class LabelView: UIView {
     @IBInspectable
     public var text: String?
 
+    private var textFont: UIFont = .preferredFont(forTextStyle: .body)
+
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
@@ -35,16 +37,19 @@ final public class LabelView: UIView {
             return
         }
 
-        context.saveGState()
+        let attributedString = NSAttributedString(string: text, attributes: [.font : textFont])
+        let ctLine = CTLineCreateWithAttributedString(attributedString)
+
+        var descent: CGFloat = 0.0
+        var leading: CGFloat = 0.0
+        CTLineGetTypographicBounds(ctLine, nil, &descent, &leading)
 
         // Do the drawing here in `bounds` or `dirtyRect`
         // Hello World
-
-        let attributedString = NSAttributedString(string: text)
-        let ctLine = CTLineCreateWithAttributedString(attributedString)
+        context.saveGState()
 
         context.textMatrix = CGAffineTransform(scaleX: 1.0, y: -1.0)
-        context.textPosition = CGPoint(x: 0, y: bounds.height)
+        context.textPosition = CGPoint(x: 0, y: bounds.height - descent - leading)
         CTLineDraw(ctLine, context)
 
         context.restoreGState()
