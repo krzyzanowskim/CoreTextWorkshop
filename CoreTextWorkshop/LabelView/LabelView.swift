@@ -69,8 +69,24 @@ final public class LabelView: UIView {
                 CTRunGetPositions(styleRun, CFRange(), &glyphsPositions)
 
                 let runAttributes = CTRunGetAttributes(styleRun) as! [String: Any]
-                let font = runAttributes[kCTFontAttributeName as String] ?? self.textFont
-                CTFontDrawGlyphs(font as! CTFont, glyphs, glyphsPositions, glyphsCount, context)
+                let font = (runAttributes[kCTFontAttributeName as String] as? UIFont) ?? self.textFont
+
+                for (glyph, position) in zip(glyphs, glyphsPositions) {
+                    guard let glyphPath = CTFontCreatePathForGlyph(font, glyph, nil) else {
+                        // whitespace has no glyph
+                        continue
+                    }
+
+                    context.saveGState()
+
+                    // Adjust path position, or change local context translateBy, scaleBy
+                    var pathTransformation = CGAffineTransform(translationX: position.x, y: transformedLineOrigin.y).scaledBy(x: 1.0, y: -1.0)
+                    let tranformedPath = glyphPath.copy(using: &pathTransformation)!
+
+                    context.addPath(tranformedPath)
+                    context.fillPath()
+                    context.restoreGState()
+                }
             }
         }
 
