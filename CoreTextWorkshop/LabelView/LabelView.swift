@@ -38,26 +38,22 @@ final public class LabelView: UIView {
         }
 
         context.saveGState()
+
         context.textMatrix = CGAffineTransform(scaleX: 1.0, y: -1.0)
 
         let attributedString = NSAttributedString(string: text, attributes: [.font : textFont])
         let framesetter = CTFramesetterCreateWithAttributedString(attributedString)
-        let ctFrame = CTFramesetterCreateFrame(framesetter, CFRange(location: 0, length: 0), CGPath(rect: bounds, transform: nil), nil)
+        let ctFrame = CTFramesetterCreateFrame(framesetter, CFRange(), CGPath(rect: bounds, transform: nil), nil)
+
         let ctLines = CTFrameGetLines(ctFrame) as! [CTLine]
 
-        var currentY: CGFloat = 0.0
-        for ctLine in ctLines {
-            var ascent: CGFloat = 0.0
-            var descent: CGFloat = 0.0
-            var leading: CGFloat = 0.0
-            CTLineGetTypographicBounds(ctLine, &ascent, &descent, &leading)
+        var ctLinesOrigins = Array<CGPoint>(repeating: .zero, count: ctLines.count)
+        CTFrameGetLineOrigins(ctFrame, CFRange(), &ctLinesOrigins)
 
-            let lineHeight = ascent + descent + leading
-
-            context.textPosition = CGPoint(x: 0, y: currentY + ascent)
+        // Draw lines at origins
+        for (ctLine, lineOrigin) in zip(ctLines, ctLinesOrigins) {
+            context.textPosition = lineOrigin
             CTLineDraw(ctLine, context)
-
-            currentY += lineHeight
         }
 
         context.restoreGState()
