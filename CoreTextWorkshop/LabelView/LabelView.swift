@@ -37,23 +37,28 @@ final public class LabelView: UIView {
             return
         }
 
-        let attributedString = NSAttributedString(string: text, attributes: [.font : textFont])
-        var ctLine = CTLineCreateWithAttributedString(attributedString)
-
-        let ellipsisLineToken = CTLineCreateWithAttributedString(NSAttributedString(string: "\u{2026}"))
-        ctLine = CTLineCreateTruncatedLine(ctLine, Double(bounds.width), .end, ellipsisLineToken)!
-
-        var descent: CGFloat = 0.0
-        var leading: CGFloat = 0.0
-        CTLineGetTypographicBounds(ctLine, nil, &descent, &leading)
-
-        // Do the drawing here in `bounds` or `dirtyRect`
-        // Hello World
         context.saveGState()
-
         context.textMatrix = CGAffineTransform(scaleX: 1.0, y: -1.0)
-        context.textPosition = CGPoint(x: 0, y: bounds.height - descent - leading)
-        CTLineDraw(ctLine, context)
+
+        let attributedString = NSAttributedString(string: text, attributes: [.font : textFont])
+        let framesetter = CTFramesetterCreateWithAttributedString(attributedString)
+        let ctFrame = CTFramesetterCreateFrame(framesetter, CFRange(location: 0, length: 0), CGPath(rect: bounds, transform: nil), nil)
+        let ctLines = CTFrameGetLines(ctFrame) as! [CTLine]
+
+        var currentY: CGFloat = 0.0
+        for ctLine in ctLines {
+            var ascent: CGFloat = 0.0
+            var descent: CGFloat = 0.0
+            var leading: CGFloat = 0.0
+            CTLineGetTypographicBounds(ctLine, &ascent, &descent, &leading)
+
+            let lineHeight = ascent + descent + leading
+
+            context.textPosition = CGPoint(x: 0, y: currentY + ascent)
+            CTLineDraw(ctLine, context)
+
+            currentY += lineHeight
+        }
 
         context.restoreGState()
     }
