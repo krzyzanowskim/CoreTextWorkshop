@@ -60,7 +60,17 @@ final public class LabelView: UIView {
             context.textPosition = transformedLineOrigin
 
             for styleRun in CTLineGetGlyphRuns(ctLine) as! [CTRun] {
-                CTRunDraw(styleRun, context, CFRange())
+                let glyphsCount = CTRunGetGlyphCount(styleRun)
+
+                var glyphs = [CGGlyph](repeating: .zero, count: glyphsCount)
+                CTRunGetGlyphs(styleRun, CFRange(), &glyphs)
+
+                var glyphsPositions = [CGPoint](repeating: .zero, count: glyphsCount)
+                CTRunGetPositions(styleRun, CFRange(), &glyphsPositions)
+
+                let runAttributes = CTRunGetAttributes(styleRun) as! [String: Any]
+                let font = runAttributes[kCTFontAttributeName as String] ?? self.textFont
+                CTFontDrawGlyphs(font as! CTFont, glyphs, glyphsPositions, glyphsCount, context)
             }
         }
 
