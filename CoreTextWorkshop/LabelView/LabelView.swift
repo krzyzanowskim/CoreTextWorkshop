@@ -38,7 +38,6 @@ final public class LabelView: UIView {
         }
 
         context.saveGState()
-
         context.textMatrix = CGAffineTransform(scaleX: 1.0, y: -1.0)
 
         let attributedString = NSAttributedString(string: text, attributes: [.font : textFont])
@@ -48,11 +47,17 @@ final public class LabelView: UIView {
         let ctLines = CTFrameGetLines(ctFrame) as! [CTLine]
 
         var ctLinesOrigins = Array<CGPoint>(repeating: .zero, count: ctLines.count)
+        // Get origins in CoreGraphics coodrinates
         CTFrameGetLineOrigins(ctFrame, CFRange(), &ctLinesOrigins)
 
         // Draw lines at origins
         for (ctLine, lineOrigin) in zip(ctLines, ctLinesOrigins) {
-            context.textPosition = lineOrigin
+
+            // Tranform coordinates for iOS
+            let transformedLineOrigin = lineOrigin.applying(.init(scaleX: 1, y: -1))
+                                                  .applying(.init(translationX: 0, y: bounds.height))
+
+            context.textPosition = transformedLineOrigin
             CTLineDraw(ctLine, context)
         }
 
@@ -63,5 +68,8 @@ final public class LabelView: UIView {
 
     public override func layoutSubviews() {
         super.layoutSubviews()
+
+        // redraw on re-layout
+        setNeedsDisplay()
     }
 }
