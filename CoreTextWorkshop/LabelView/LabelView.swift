@@ -58,7 +58,10 @@ final public class LabelView: UIView {
                                                   .applying(.init(translationX: 0, y: bounds.height))
 
             context.textPosition = transformedLineOrigin
-            CTLineDraw(ctLine, context)
+
+            for styleRun in CTLineGetGlyphRuns(ctLine) as! [CTRun] {
+                CTRunDraw(styleRun, context, CFRange())
+            }
         }
 
         context.restoreGState()
