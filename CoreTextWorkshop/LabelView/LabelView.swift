@@ -38,7 +38,10 @@ final public class LabelView: UIView {
         }
 
         let attributedString = NSAttributedString(string: text, attributes: [.font : textFont])
-        let ctLine = CTLineCreateWithAttributedString(attributedString)
+        var ctLine = CTLineCreateWithAttributedString(attributedString)
+
+        let ellipsisLineToken = CTLineCreateWithAttributedString(NSAttributedString(string: "\u{2026}"))
+        ctLine = CTLineCreateTruncatedLine(ctLine, Double(bounds.width), .end, ellipsisLineToken)!
 
         var descent: CGFloat = 0.0
         var leading: CGFloat = 0.0

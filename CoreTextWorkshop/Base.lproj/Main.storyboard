@@ -21,7 +21,7 @@
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
                                 <userDefinedRuntimeAttributes>
-                                    <userDefinedRuntimeAttribute type="string" keyPath="text" value="Hello World"/>
+                                    <userDefinedRuntimeAttribute type="string" keyPath="text" value="Hello World is very big and the ocean is very large so maybe we wrap this text"/>
                                 </userDefinedRuntimeAttributes>
                             </view>
                         </subviews>
