@@ -40,7 +40,12 @@ final public class LabelView: UIView {
         // Do the drawing here in `bounds` or `dirtyRect`
         // Hello World
 
-        (text as NSString).draw(at: CGPoint(x: 0, y: 0), withAttributes: nil)
+        let attributedString = NSAttributedString(string: text)
+        let ctLine = CTLineCreateWithAttributedString(attributedString)
+
+        context.textMatrix = CGAffineTransform(scaleX: 1.0, y: -1.0)
+        context.textPosition = CGPoint(x: 0, y: bounds.height)
+        CTLineDraw(ctLine, context)
 
         context.restoreGState()
     }
