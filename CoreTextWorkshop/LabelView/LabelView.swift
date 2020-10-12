@@ -30,10 +30,17 @@ final public class LabelView: UIView {
             return
         }
 
+        // Check for string to draw
+        guard let text = self.text else {
+            return
+        }
+
         context.saveGState()
 
         // Do the drawing here in `bounds` or `dirtyRect`
-        // START HERE
+        // Hello World
+
+        (text as NSString).draw(at: CGPoint(x: 0, y: 0), withAttributes: nil)
 
         context.restoreGState()
     }
