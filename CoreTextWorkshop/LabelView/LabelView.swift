@@ -8,6 +8,12 @@ final public class LabelView: UIView {
     @IBInspectable
     public var text: String?
 
+    private var attributedString: NSAttributedString? {
+        guard let text = self.text else {
+            return nil
+        }
+        return NSAttributedString(string: text, attributes: [.font: textFont, .foregroundColor: UIColor.label])
+    }
     private var textFont: UIFont = .preferredFont(forTextStyle: .body)
 
     override init(frame: CGRect) {
@@ -35,14 +41,13 @@ final public class LabelView: UIView {
         }
 
         // Check for string to draw
-        guard let text = self.text else {
+        guard let attributedString = self.attributedString else {
             return
         }
 
         context.saveGState()
         context.textMatrix = CGAffineTransform(scaleX: 1.0, y: -1.0)
 
-        let attributedString = NSAttributedString(string: text, attributes: [.font : textFont, .foregroundColor: UIColor.label])
         let framesetter = CTFramesetterCreateWithAttributedString(attributedString)
         let ctFrame = CTFramesetterCreateFrame(framesetter, CFRange(), CGPath(rect: bounds, transform: nil), nil)
 
@@ -76,16 +81,15 @@ final public class LabelView: UIView {
     }
 
     public override var intrinsicContentSize: CGSize {
-        guard let text = self.text else {
+        guard let attributedString = self.attributedString else {
             return CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric)
         }
-        return getSizeThatFits(text: text, font: self.textFont, maxWidth: bounds.width)
+        return getSizeThatFits(attributedString, maxWidth: bounds.width)
     }
 }
 
 
-private func getSizeThatFits(text: String, font: UIFont, maxWidth: CGFloat) -> CGSize {
-    let attributedString = NSAttributedString(string: text, attributes: [.font : font])
+private func getSizeThatFits(_ attributedString: NSAttributedString, maxWidth: CGFloat) -> CGSize {
     let framesetter = CTFramesetterCreateWithAttributedString(attributedString)
     let rectPath = CGRect(origin: .zero, size: CGSize(width: maxWidth, height: 50000))
     let ctFrame = CTFramesetterCreateFrame(framesetter, CFRange(), CGPath(rect: rectPath, transform: nil), nil)

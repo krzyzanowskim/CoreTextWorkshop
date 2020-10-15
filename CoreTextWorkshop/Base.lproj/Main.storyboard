@@ -16,7 +16,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Hah-2v-GlQ" customClass="LabelView" customModule="CoreTextWorkshop" customModuleProvider="target">
+                            <view userInteractionEnabled="NO" contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Hah-2v-GlQ" customClass="LabelView" customModule="CoreTextWorkshop" customModuleProvider="target">
                                 <rect key="frame" x="16" y="20" width="343" height="202"/>
                                 <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
                                 <userDefinedRuntimeAttributes>
@@ -43,7 +43,7 @@
     </scenes>
     <designables>
         <designable name="Hah-2v-GlQ">
-            <size key="intrinsicContentSize" width="343" height="202.21347656250001"/>
+            <size key="intrinsicContentSize" width="343" height="90.959765625000003"/>
         </designable>
     </designables>
     <resources>
