@@ -96,19 +96,24 @@ private func getSizeThatFits(text: String, font: UIFont, maxWidth: CGFloat) -> C
     // Get origins in CoreGraphics coodrinates
     CTFrameGetLineOrigins(ctFrame, CFRange(), &ctLinesOrigins)
 
-    guard let maxOrigin = ctLinesOrigins.min(by: { $0.y < $1.y }),
+    guard let minOrigin = ctLinesOrigins.min(by: { $0.y < $1.y }),
             let lastCTLine = ctLines.last else {
         return .zero
     }
 
+    // Transform last origin to iOS coordinates
+    let transformedMinOrigin = minOrigin
+        .applying(.init(scaleX: 1, y: -1))
+        .applying(.init(translationX: 0, y: rectPath.height))
+
+    // Get last line metrics and get full height (relative to from origin)
     var ascent: CGFloat = 0
     var descent: CGFloat = 0
     var leading: CGFloat = 0
     CTLineGetTypographicBounds(lastCTLine, &ascent, &descent, &leading)
+    let lineSpacing = (ascent + descent + leading) * 0.2 // 20% by default, actual value depends on Paragraph
 
-    let lastLineHeight = (ascent + descent + leading)
-    let lineSpacing = lastLineHeight * 0.2 // 20% by default, actual value depends on Paragraph
-
-    let maxHeight = (rectPath.height - maxOrigin.y) - ascent + lastLineHeight + (lineSpacing / 2)
+    // Calculate maximum height of the frame
+    let maxHeight = transformedMinOrigin.y + descent + leading + (lineSpacing / 2)
     return CGSize(width: maxWidth, height: maxHeight)
 }
