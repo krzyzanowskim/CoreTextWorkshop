@@ -18,8 +18,10 @@ final public class LabelView: UIView {
         super.init(coder: coder)
     }
 
-    public override class func prepareForInterfaceBuilder() {
-        super.prepareForInterfaceBuilder()
+    public override var bounds: CGRect {
+        didSet {
+            frame.size.height = intrinsicContentSize.height
+        }
     }
 
     // MARK: - Draw
@@ -40,7 +42,7 @@ final public class LabelView: UIView {
         context.saveGState()
         context.textMatrix = CGAffineTransform(scaleX: 1.0, y: -1.0)
 
-        let attributedString = NSAttributedString(string: text, attributes: [.font : textFont])
+        let attributedString = NSAttributedString(string: text, attributes: [.font : textFont, .foregroundColor: UIColor.label])
         let framesetter = CTFramesetterCreateWithAttributedString(attributedString)
         let ctFrame = CTFramesetterCreateFrame(framesetter, CFRange(), CGPath(rect: bounds, transform: nil), nil)
 
@@ -69,42 +71,44 @@ final public class LabelView: UIView {
     public override func layoutSubviews() {
         super.layoutSubviews()
 
-        let maxRect = getRectThatFits(maxWidth: bounds.width)
-        frame.size.height = maxRect.height
-
         // redraw on re-layout
         setNeedsDisplay()
     }
 
-    private func getRectThatFits(maxWidth: CGFloat) -> CGRect {
+    public override var intrinsicContentSize: CGSize {
         guard let text = self.text else {
-            return .zero
+            return CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric)
         }
-
-        let attributedString = NSAttributedString(string: text, attributes: [.font : textFont])
-        let framesetter = CTFramesetterCreateWithAttributedString(attributedString)
-        let rectPath = CGRect(origin: .zero, size: CGSize(width: maxWidth, height: 10000))
-        let ctFrame = CTFramesetterCreateFrame(framesetter, CFRange(), CGPath(rect: rectPath, transform: nil), nil)
-
-        let ctLines = CTFrameGetLines(ctFrame) as! [CTLine]
-
-        var ctLinesOrigins = Array<CGPoint>(repeating: .zero, count: ctLines.count)
-        // Get origins in CoreGraphics coodrinates
-        CTFrameGetLineOrigins(ctFrame, CFRange(), &ctLinesOrigins)
-
-        guard let maxOrigin = ctLinesOrigins.min(by: { $0.y < $1.y }),
-                let lastCTLine = ctLines.last else {
-            return .zero
-        }
-
-        var ascent: CGFloat = 0
-        var descent: CGFloat = 0
-        var leading: CGFloat = 0
-        CTLineGetTypographicBounds(lastCTLine, &ascent, &descent, &leading)
-
-        let lastLineHeight = (ascent + descent + leading) * 1.2
-
-        let maxHeight = (rectPath.height - maxOrigin.y) + lastLineHeight - ascent
-        return CGRect(origin: .zero, size: CGSize(width: maxWidth, height: maxHeight))
+        return getSizeThatFits(text: text, font: self.textFont, maxWidth: bounds.width)
     }
+}
+
+
+private func getSizeThatFits(text: String, font: UIFont, maxWidth: CGFloat) -> CGSize {
+    let attributedString = NSAttributedString(string: text, attributes: [.font : font])
+    let framesetter = CTFramesetterCreateWithAttributedString(attributedString)
+    let rectPath = CGRect(origin: .zero, size: CGSize(width: maxWidth, height: 50000))
+    let ctFrame = CTFramesetterCreateFrame(framesetter, CFRange(), CGPath(rect: rectPath, transform: nil), nil)
+
+    let ctLines = CTFrameGetLines(ctFrame) as! [CTLine]
+
+    var ctLinesOrigins = Array<CGPoint>(repeating: .zero, count: ctLines.count)
+    // Get origins in CoreGraphics coodrinates
+    CTFrameGetLineOrigins(ctFrame, CFRange(), &ctLinesOrigins)
+
+    guard let maxOrigin = ctLinesOrigins.min(by: { $0.y < $1.y }),
+            let lastCTLine = ctLines.last else {
+        return .zero
+    }
+
+    var ascent: CGFloat = 0
+    var descent: CGFloat = 0
+    var leading: CGFloat = 0
+    CTLineGetTypographicBounds(lastCTLine, &ascent, &descent, &leading)
+
+    let lastLineHeight = (ascent + descent + leading)
+    let lineSpacing = lastLineHeight * 0.2 // 20% by default, actual value depends on Paragraph
+
+    let maxHeight = (rectPath.height - maxOrigin.y) - ascent + lastLineHeight + (lineSpacing / 2)
+    return CGSize(width: maxWidth, height: maxHeight)
 }
