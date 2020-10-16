@@ -92,23 +92,28 @@ final public class LabelView: UIView {
 private func getSizeThatFits(_ attributedString: NSAttributedString, maxWidth: CGFloat) -> CGSize {
     let framesetter = CTFramesetterCreateWithAttributedString(attributedString)
     let rectPath = CGRect(origin: .zero, size: CGSize(width: maxWidth, height: 50000))
+
     let ctFrame = CTFramesetterCreateFrame(framesetter, CFRange(), CGPath(rect: rectPath, transform: nil), nil)
 
-    let ctLines = CTFrameGetLines(ctFrame) as! [CTLine]
+    guard let ctLines = CTFrameGetLines(ctFrame) as? [CTLine], !ctLines.isEmpty else {
+        return .zero
+    }
 
     var ctLinesOrigins = Array<CGPoint>(repeating: .zero, count: ctLines.count)
     // Get origins in CoreGraphics coodrinates
     CTFrameGetLineOrigins(ctFrame, CFRange(), &ctLinesOrigins)
 
-    guard let minOrigin = ctLinesOrigins.min(by: { $0.y < $1.y }),
-            let lastCTLine = ctLines.last else {
+    // Transform last origin to iOS coordinates
+    let transform: CGAffineTransform
+    #if os(macOS)
+    transform = CGAffineTransform.identity
+    #else
+    transform = CGAffineTransform(scaleX: 1, y: -1).concatenating(CGAffineTransform.init(translationX: 0, y: rectPath.height))
+    #endif
+
+    guard let lastCTLineOrigin = ctLinesOrigins.last?.applying(transform), let lastCTLine = ctLines.last else {
         return .zero
     }
-
-    // Transform last origin to iOS coordinates
-    let transformedMinOrigin = minOrigin
-        .applying(.init(scaleX: 1, y: -1))
-        .applying(.init(translationX: 0, y: rectPath.height))
 
     // Get last line metrics and get full height (relative to from origin)
     var ascent: CGFloat = 0
@@ -118,6 +123,6 @@ private func getSizeThatFits(_ attributedString: NSAttributedString, maxWidth: C
     let lineSpacing = (ascent + descent + leading) * 0.2 // 20% by default, actual value depends on Paragraph
 
     // Calculate maximum height of the frame
-    let maxHeight = transformedMinOrigin.y + descent + leading + (lineSpacing / 2)
+    let maxHeight = lastCTLineOrigin.y + descent + leading + (lineSpacing / 2)
     return CGSize(width: maxWidth, height: maxHeight)
 }
